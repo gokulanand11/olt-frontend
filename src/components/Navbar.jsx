@@ -17,11 +17,14 @@ export default function Navbar() {
       <div className="nav-links">
         {user ? (
           <>
-            <Link to="/">Dashboard</Link>
-            <Link to="/courses">Courses</Link>
-            <Link to="/assignments">Assignments</Link>
-            {user.role === "admin" && <Link to="/admin">Admin</Link>}
-            <button className="btn" onClick={handleLogout}>Logout</button>
+            <Link to="/">📊 Dashboard</Link>
+            <Link to="/courses">📚 Courses</Link>
+            <Link to="/assignments">📝 Assignments</Link>
+            {user.role === "admin" && <Link to="/admin">⚙️ Admin</Link>}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ color: 'var(--muted)', fontSize: '0.9rem' }}>👋 {user.name}</span>
+              <button className="btn" onClick={handleLogout}>Logout</button>
+            </div>
           </>
         ) : (
           <>

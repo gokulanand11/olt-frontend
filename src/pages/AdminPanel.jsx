@@ -1,14 +1,28 @@
 import React, { useState } from "react";
+import api from "../services/api.js";
 
 export default function AdminPanel() {
   const [course, setCourse] = useState({ title: "", description: "", modules: [] });
+  const [loading, setLoading] = useState(false);
 
   const addModule = () => {
     setCourse({ ...course, modules: [...course.modules, { title: "", lessons: [] }] });
   };
   const saveCourse = async () => {
-    // POST /courses
-    alert("Course saved (mock). Wire to backend.");
+    if (!course.title.trim()) {
+      alert("Course title is required");
+      return;
+    }
+    setLoading(true);
+    try {
+      await api.post("/courses", course);
+      alert("Course created successfully!");
+      setCourse({ title: "", description: "", modules: [] });
+    } catch (error) {
+      alert("Failed to create course: " + error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -34,7 +48,9 @@ export default function AdminPanel() {
             <button className="btn" onClick={() => alert("Add lessons UI")}>Add lesson</button>
           </div>
         ))}
-        <button className="btn primary" onClick={saveCourse}>Publish course</button>
+        <button className="btn primary" onClick={saveCourse} disabled={loading}>
+          {loading ? "Publishing..." : "Publish course"}
+        </button>
       </div>
     </div>
   );

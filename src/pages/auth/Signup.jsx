@@ -1,23 +1,25 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext.jsx";
-import api from "../../services/api.js";
 
 export default function Signup() {
   const { signup } = useAuth();
   const navigate = useNavigate();
   const [payload, setPayload] = useState({ name: "", email: "", password: "", role: "learner" });
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const onSubmit = async (e) => {
-    e.preventDefault();
+    e.preventDefault(); 
+    setError("");
+    setLoading(true);
     try {
-      // Replace with: await signup(payload) when backend ready
-      const res = await api.mockSignup(payload);
-      localStorage.setItem("auth", JSON.stringify({ ...res.user, token: res.token }));
+      await signup(payload);
       navigate("/", { replace: true });
     } catch (err) {
       setError(err.message || "Signup failed");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -42,7 +44,12 @@ export default function Signup() {
             <option value="admin">Admin</option>
           </select>
         </label>
-        <button className="btn primary" type="submit">Create account</button>
+        <button className="btn primary" type="submit" disabled={loading}>
+          {loading ? "Creating account..." : "Create account"}
+        </button>
+        <p style={{ textAlign: 'center', marginTop: '16px', color: 'var(--muted)' }}>
+          Already have an account? <a href="/login" style={{ color: 'var(--primary)' }}>Login here</a>
+        </p>
       </form>
     </div>
   );

@@ -4,40 +4,55 @@ import api from "../services/api.js";
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);       // { id, name, email, role, token }
+  const [user, setUser] = useState(null);  
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Attempt restore from localStorage
-    const raw = localStorage.getItem("auth");
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      api.setToken(parsed.token);
-      setUser(parsed);
+    const token = localStorage.getItem("token");
+    const userStr = localStorage.getItem("user");
+    if (token && userStr) {
+      const user = JSON.parse(userStr);
+      api.setToken(token);
+      setUser({ ...user, token });
     }
     setLoading(false);
   }, []);
 
   const login = async (email, password) => {
-    const res = await api.post("/auth/login", { email, password });
-    const auth = { ...res.user, token: res.token };
-    localStorage.setItem("auth", JSON.stringify(auth));
-    api.setToken(res.token);
-    setUser(auth);
-    return auth;
+    try {
+      console.log('Attempting login for:', email);
+      const res = await api.post("/auth/login", { email, password });
+      console.log('Login response:', res);
+      localStorage.setItem("token", res.token);
+      localStorage.setItem("user", JSON.stringify(res.user));
+      api.setToken(res.token);
+      setUser({ ...res.user, token: res.token });
+      return { ...res.user, token: res.token };
+    } catch (error) {
+      console.error('Login error:', error);
+      throw new Error(error.message || 'Login failed');
+    }
   };
 
   const signup = async (payload) => {
-    const res = await api.post("/auth/signup", payload);
-    const auth = { ...res.user, token: res.token };
-    localStorage.setItem("auth", JSON.stringify(auth));
-    api.setToken(res.token);
-    setUser(auth);
-    return auth;
+    try {
+      console.log('Attempting signup for:', payload.email);
+      const res = await api.post("/auth/signup", payload);
+      console.log('Signup response:', res);
+      localStorage.setItem("token", res.token);
+      localStorage.setItem("user", JSON.stringify(res.user));
+      api.setToken(res.token);
+      setUser({ ...res.user, token: res.token });
+      return { ...res.user, token: res.token };
+    } catch (error) {
+      console.error('Signup error:', error);
+      throw new Error(error.message || 'Signup failed');
+    }
   };
 
   const logout = () => {
-    localStorage.removeItem("auth");
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
     api.setToken(null);
     setUser(null);
   };

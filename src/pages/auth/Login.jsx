@@ -1,12 +1,12 @@
 import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext.jsx";
-import api from "../../services/api.js";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -14,14 +14,15 @@ export default function Login() {
 
   const onSubmit = async (e) => {
     e.preventDefault();
+    setError("");
+    setLoading(true);
     try {
-      // Replace with: const res = await login(email, password); when backend ready
-      const res = await api.mockLogin({ email, password });
-      await login(email, password).catch(() => {}); // placeholder for real login
-      localStorage.setItem("auth", JSON.stringify({ ...res.user, token: res.token }));
+      await login(email, password);
       navigate(from, { replace: true });
     } catch (err) {
       setError(err.message || "Login failed");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -36,7 +37,17 @@ export default function Login() {
         <label>Password
           <input type="password" value={password} onChange={e => setPassword(e.target.value)} required />
         </label>
-        <button className="btn primary" type="submit">Login</button>
+        <button className="btn primary" type="submit" disabled={loading}>
+          {loading ? "Logging in..." : "Login"}
+        </button>
+        <p style={{ textAlign: 'center', marginTop: '16px', color: 'var(--muted)' }}>
+          Don't have an account? <a href="/signup" style={{ color: 'var(--primary)' }}>Sign up here</a>
+        </p>
+        <div style={{ marginTop: '20px', padding: '12px', background: 'var(--card)', borderRadius: '8px', fontSize: '14px' }}>
+          <strong>Demo Accounts:</strong><br/>
+          Learner: learner@test.com / password123<br/>
+          Admin: admin@test.com / password123
+        </div>
       </form>
     </div>
   );

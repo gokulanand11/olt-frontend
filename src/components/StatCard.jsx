@@ -5,7 +5,7 @@ export default function StatCard({ title, value, hint }) {
     <div className="card stat">
       <div className="stat-title">{title}</div>
       <div className="stat-value">{value}</div>
-      {hint && <div className="stat-hint">{hint}</div>}
+      {hint && <div className="muted" style={{ fontSize: '12px', marginTop: '8px' }}>{hint}</div>}
     </div>
   );
 }

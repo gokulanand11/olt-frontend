@@ -1,29 +1,49 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import ProgressBar from "../components/ProgressBar.jsx";
+import api from "../services/api.js";
 
 export default function CourseDetail() {
   const { courseId } = useParams();
   const [course, setCourse] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Replace with API: /courses/:courseId (modules, lessons, assessments)
-    setCourse({
-      course_id: courseId,
-      title: "React Basics",
-      description: "Intro to React",
-      modules: [
-        { module_id: "m1", title: "Fundamentals", lessons: [
-          { lesson_id: "l1", title: "Components", duration: 15, completed: true },
-          { lesson_id: "l2", title: "JSX & Props", duration: 20, completed: false },
-        ]},
-        { module_id: "m2", title: "State & Effects", lessons: [
-          { lesson_id: "l3", title: "useState", duration: 18, completed: false },
-          { lesson_id: "l4", title: "useEffect", duration: 22, completed: false },
-        ]}
-      ],
-      assessments: [{ assessment_id: "a1", title: "React Basics Quiz", pass_mark: 70 }]
-    });
+    const fetchCourse = async () => {
+      try {
+        console.log('Fetching course:', courseId);
+        const data = await api.get(`/courses/${courseId}`);
+        console.log('Course data:', data);
+        setCourse({
+          course_id: data._id,
+          title: data.title,
+          description: data.description,
+          modules: data.modules?.map(m => ({
+            module_id: m._id,
+            title: m.title,
+            lessons: m.lessons?.map(l => ({
+              lesson_id: l._id,
+              title: l.title,
+              duration: l.duration,
+              completed: false
+            })) || []
+          })) || [],
+          assessments: []
+        });
+      } catch (error) {
+        console.error("Failed to fetch course:", error);
+        setCourse({
+          course_id: courseId,
+          title: "Course Not Found",
+          description: "This course could not be loaded.",
+          modules: [],
+          assessments: []
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (courseId) fetchCourse();
   }, [courseId]);
 
   const completion = useMemo(() => {
@@ -33,7 +53,21 @@ export default function CourseDetail() {
     return Math.round((done / lessons.length) * 100);
   }, [course]);
 
-  if (!course) return <div>Loading...</div>;
+  if (loading) return (
+    <div className="card">
+      <div style={{ textAlign: 'center', padding: '40px' }}>
+        <div style={{ fontSize: '18px' }}>Loading course details...</div>
+      </div>
+    </div>
+  );
+
+  if (!course) return (
+    <div className="card">
+      <div style={{ textAlign: 'center', padding: '40px' }}>
+        <div style={{ fontSize: '18px' }}>Course not found</div>
+      </div>
+    </div>
+  );
 
   return (
     <div>
